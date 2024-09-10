@@ -1,0 +1,49 @@
+---
+- name: Check if Nginx installed
+  stat: 
+    path: /etc/nginx/nginx.conf
+  register: 
+    nginx
+
+- name: Install Nginx
+  yum:
+    name=nginx
+    state=latest
+  when:
+    ansible_os_family == "RedHat" and not nginx.stat.exists
+  register:
+    nginx_installed
+  notify:
+    - nginx systemd
+    
+- name: Create www directory
+  file:
+    path: /var/www/backend
+    state: directory
+  when:
+    inventory_hostname in groups['backend-servers']
+
+- name: Create test index.html for backend
+  template:
+    src=templates/index.html
+    dest=/var/www/backend/index.html
+  when:
+    inventory_hostname in groups['backend-servers']
+    
+- name: Create backend config
+  template:
+    src=templates/backend.conf
+    dest=/etc/nginx/conf.d/backend.conf
+  when:
+    inventory_hostname in groups['backend-servers']
+  notify:
+    - nginx restart
+    
+- name: Create balancer config
+  template:
+    src=templates/upstreams.conf
+    dest=/etc/nginx/conf.d/upstreams.conf
+  when:
+    inventory_hostname in groups['balancer-servers']
+  notify:
+    - nginx restart  

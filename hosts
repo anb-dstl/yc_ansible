@@ -1,0 +1,6 @@
+[backend-servers]
+192.168.10.11
+192.168.10.12
+
+[balancer-servers]
+localhost
