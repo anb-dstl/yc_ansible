@@ -1,1 +1,2 @@
-*_default.cfg
+ansible_default.cfg
+hosts_default
